@@ -1,1 +1,1 @@
-python main.py RBLX SPX
+python stock_ticker.py RBLX SPX 

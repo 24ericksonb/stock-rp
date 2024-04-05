@@ -11,11 +11,18 @@ Y = 320
 LARGE_FONT = 45
 SMALL_FONT = 20
 
+def check_positive(value):
+    """Check if the given value is a positive integer."""
+    ivalue = int(value)
+    if ivalue < 1:
+        raise argparse.ArgumentTypeError(f"{value} is an invalid positive int value")
+    return ivalue
 
 def parse_arguments():
     """Parse command line arguments for stock tickers."""
     parser = argparse.ArgumentParser(description='Stock Ticker Display')
     parser.add_argument('ticker', nargs=2, help='Two stock tickers')
+    parser.add_argument('--refresh', type=check_positive, default=5, help='Refresh rate in seconds (default: 5, min: 1)')
     args = parser.parse_args()
     return args
 
@@ -67,14 +74,15 @@ def main():
     """Main function for the stock ticker display."""
     args = parse_arguments()
     tickers = args.ticker
+    refresh_rate = args.refresh
 
     pygame.init()
 
     display_surface = pygame.display.set_mode((X, Y), pygame.NOFRAME)
     font = pygame.font.Font('font.ttf', LARGE_FONT)
     small_font = pygame.font.Font('font.ttf', SMALL_FONT)
-    last_update_time = time.time() - 5
-    update_interval = 5
+    last_update_time = time.time() - refresh_rate
+    update_interval = refresh_rate
     clock = pygame.time.Clock()
     background = pygame.image.load('background.png')
 
