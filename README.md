@@ -21,11 +21,11 @@ This project creates a stock ticker display for your desk using a Raspberry Pi a
 ### Software Setup
 1. Clone this repository to your Raspberry Pi:
    ```
-   git clone https://github.com/yourusername/raspberry-pi-stock-ticker.git
+   git clone https://github.com/24ericksonb/stock-rp.git
    ```
 2. Navigate to the project directory:
    ```
-   cd raspberry-pi-stock-ticker
+   cd stock-rp
    ```
 3. Install the required Python libraries:
    ```
