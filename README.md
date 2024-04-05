@@ -1,4 +1,4 @@
-# Raspberry Pi LCD Stock Ticker
+# Raspberry Pi Stock Ticker
 
 ## Overview
 This project creates a stock ticker display for your desk using a Raspberry Pi and an LCD screen. It shows real-time stock prices and changes for two specified stocks, updating every few seconds.
