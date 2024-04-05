@@ -92,6 +92,7 @@ def main():
 
     pygame.init()
 
+    pygame.mouse.set_visible(False)
     display_surface = pygame.display.set_mode((X, Y), pygame.NOFRAME)
     font = pygame.font.Font('font.ttf', LARGE_FONT)
     small_font = pygame.font.Font('font.ttf', SMALL_FONT)
