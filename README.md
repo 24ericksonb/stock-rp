@@ -1,7 +1,3 @@
-Certainly! Here's a simple README file for your Raspberry Pi LCD Stock Ticker project:
-
----
-
 # Raspberry Pi LCD Stock Ticker
 
 ## Overview
@@ -47,7 +43,7 @@ def parse_arguments():
     """Parse command line arguments for stock tickers."""
     parser = argparse.ArgumentParser(description='Stock Ticker Display')
     parser.add_argument('ticker', nargs=2, help='Two stock tickers')
-    parser.add_argument('--refresh', type=int, default=5, choices=range(1, 61), help='Refresh rate in seconds (default: 5, min: 1, max: 60)')
+    parser.add_argument('--refresh', type=int, default=30, help='Refresh rate in seconds (default: 30, min: 1)')
     args = parser.parse_args()
     return args
 ```
@@ -57,7 +53,7 @@ def parse_arguments():
   ```
   python3 stock_ticker.py <ticker-1> <ticker-2>
   ```
-- You can also specify the refresh rate in seconds using the `--refresh` option (minimum 1 second, default 5 seconds):
+- You can also specify the refresh rate in seconds using the `--refresh` option (minimum 1 second, default 30 seconds):
   ```
   python3 stock_ticker.py <ticker-1> <ticker-2> --refresh <speed-in-seconds>
   ```
