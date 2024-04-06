@@ -4,11 +4,25 @@ import pygame
 import requests
 import time
 from bs4 import BeautifulSoup
+import socket
 
 X = 480
 Y = 320
 LARGE_FONT = 45
 SMALL_FONT = 20
+TINY_FONT = 12
+
+def get_ip_address():
+    """Get the IP address of the device."""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip_address = s.getsockname()[0]
+        s.close()
+    except Exception:
+        return None
+    return ip_address
+
 
 def check_positive(value):
     """Check if the given value is a positive integer."""
@@ -84,8 +98,21 @@ def render_stock_info(display_surface, font, stock_name, price, change, percent_
     display_surface.blit(change_text, change_rect)
 
 
+def render_ip_address(display_surface, font, ip_address):
+    """Render the IP address on the display surface."""
+    white = (255, 255, 255)
+    ip_text = font.render(f'IP: {ip_address}', True, white)
+    display_surface.blit(ip_text, (10, 10))
+
+
 def main():
     """Main function for the stock ticker display."""
+    ip_address = get_ip_address()
+
+    if ip_address is None:
+        print("No IP address found. Exiting...")
+        exit()
+        
     args = parse_arguments()
     tickers = args.ticker
     refresh_rate = args.refresh
@@ -96,6 +123,7 @@ def main():
     display_surface = pygame.display.set_mode((X, Y), pygame.NOFRAME)
     font = pygame.font.Font('font.ttf', LARGE_FONT)
     small_font = pygame.font.Font('font.ttf', SMALL_FONT)
+    tiny_fony = pygame.font.Font('font.ttf', TINY_FONT)
     last_update_time = time.time() - refresh_rate
     update_interval = refresh_rate
     clock = pygame.time.Clock()
@@ -111,6 +139,7 @@ def main():
                 render_stock_info(display_surface, font, ticker, price, change, percent_change,
                                    (LARGE_FONT * 1.25) + i * (LARGE_FONT * 2.75))
             render_last_updated(display_surface, small_font, last_updated)
+            render_ip_address(display_surface, tiny_fony, ip_address)
             last_update_time = current_time
 
             # Flip the display surface upside down and blit it onto the screen
