@@ -11,6 +11,7 @@ Y = 320
 LARGE_FONT = 45
 SMALL_FONT = 20
 TINY_FONT = 12
+RETRIES = 3
 
 def get_ip_address():
     """Get the IP address of the device."""
@@ -107,7 +108,13 @@ def render_ip_address(display_surface, font, ip_address):
 
 def main():
     """Main function for the stock ticker display."""
-    ip_address = get_ip_address()
+    ip_address = None
+
+    for _ in range(RETRIES):
+        ip_address = get_ip_address()
+        if ip_address is not None:
+            break
+        time.sleep(4)
 
     if ip_address is None:
         print("No IP address found. Exiting...")
