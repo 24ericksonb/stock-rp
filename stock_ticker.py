@@ -1,9 +1,7 @@
 import argparse
 import datetime
 import pygame
-import requests
 import time
-from bs4 import BeautifulSoup
 import socket
 import yfinance as yf
 
