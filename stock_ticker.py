@@ -11,7 +11,7 @@ Y = 320
 LARGE_FONT = 45
 SMALL_FONT = 20
 TINY_FONT = 12
-RETRIES = 3
+RETRIES = 10
 
 def get_ip_address():
     """Get the IP address of the device."""
