@@ -145,7 +145,7 @@ def main():
             for i, ticker in enumerate(tickers):
                 price, change, percent_change = get_stock_data(ticker)
                 render_stock_info(display_surface, font, ticker, price, change, percent_change,
-                                   (LARGE_FONT * 1.25) + i * (LARGE_FONT * 2.75))
+                                   (LARGE_FONT * 1.5) + i * (LARGE_FONT * 2.75))
             render_last_updated(display_surface, small_font, last_updated)
             render_ip_address(display_surface, tiny_fony, ip_address)
             last_update_time = current_time
