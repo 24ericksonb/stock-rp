@@ -15,14 +15,19 @@ RETRIES = 10
 
 def get_ip_address():
     """Get the IP address of the device."""
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        ip_address = s.getsockname()[0]
-        s.close()
-    except Exception:
-        return None
-    return ip_address
+    for _ in range(RETRIES):
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            ip_address = s.getsockname()[0]
+            s.close()
+        except Exception:
+            print("Failed to find IP address. Retrying...")
+            time.sleep(4)
+            continue
+        return ip_address
+    print("No IP address found. Exiting...")
+    exit()
 
 
 def check_positive(value):
@@ -36,7 +41,7 @@ def parse_arguments():
     """Parse command line arguments for stock tickers."""
     parser = argparse.ArgumentParser(description='Stock Ticker Display')
     parser.add_argument('ticker', nargs=2, help='Two stock tickers')
-    parser.add_argument('--refresh', type=check_positive, default=30, help='Refresh rate in seconds (default: 30, min: 1)')
+    parser.add_argument('--refresh', type=check_positive, default=60, help='Refresh rate in seconds (default: 60, min: 1)')
     args = parser.parse_args()
     return args
 
@@ -91,10 +96,17 @@ def render_stock_info(display_surface, font, stock_name, price, change, percent_
     red = (255, 0, 0)
     color = green if change > 0 else red if change < 0 else white
     plus_sign = '+' if change > 0 else ''
-    stock_text = font.render(f'{stock_name}    {price:,.2f}', True, color)
-    change_text = font.render(f'{plus_sign}{change:,.2f}   {plus_sign}{percent_change:,.2f}%', True, color)
+
+    errored = price == -1
+    price_text = 'ERROR' if errored else f'{price:,.2f}'
+    change_text = 'ERROR' if errored else f'{plus_sign}{change:,.2f}'
+    percent_change_text = 'ERROR' if errored else f'{plus_sign}{percent_change:,.2f}%'
+
+    stock_text = font.render(f'{stock_name}    {price_text}', True, color)
+    change_text = font.render(f'{change_text}   {percent_change_text}', True, color)
     stock_rect = stock_text.get_rect(center=(X // 2, position))
     change_rect = change_text.get_rect(center=(X // 2, position + LARGE_FONT + 5))
+
     display_surface.blit(stock_text, stock_rect)
     display_surface.blit(change_text, change_rect)
 
@@ -108,17 +120,7 @@ def render_ip_address(display_surface, font, ip_address):
 
 def main():
     """Main function for the stock ticker display."""
-    ip_address = None
-
-    for _ in range(RETRIES):
-        ip_address = get_ip_address()
-        if ip_address is not None:
-            break
-        time.sleep(4)
-
-    if ip_address is None:
-        print("No IP address found. Exiting...")
-        exit()
+    ip_address = get_ip_address()
         
     args = parse_arguments()
     tickers = args.ticker
@@ -134,38 +136,31 @@ def main():
     last_update_time = time.time() - refresh_rate
     update_interval = refresh_rate
     clock = pygame.time.Clock()
-    background = pygame.image.load('background.png')
 
     while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
         current_time = time.time()
+
         if current_time - last_update_time >= update_interval:
-            # display_surface.blit(background, (0, 0))
             display_surface.fill((0, 0, 0)) 
             last_updated = format_date(datetime.datetime.now())
             for i, ticker in enumerate(tickers):
-                price, change, percent_change = get_stock_data(ticker)
+                price, change, percent_change = get_stock_data(ticker) 
                 render_stock_info(display_surface, font, ticker, price, change, percent_change,
                                    (LARGE_FONT * 1.5) + i * (LARGE_FONT * 2.75))
             render_last_updated(display_surface, small_font, last_updated)
             render_ip_address(display_surface, tiny_fony, ip_address)
             last_update_time = current_time
 
-            # Flip the display surface upside down and blit it onto the screen
             flipped_surface = pygame.transform.rotate(display_surface, 180)
             display_surface.blit(flipped_surface, (0, 0))
 
-        # Update the entire display
         pygame.display.flip()
-        clock.tick(10)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-
-if __name__ == '__main__':
-    main()
-
+        clock.tick(1.0 / (refresh_rate + 1))
 
 if __name__ == '__main__':
     main()
