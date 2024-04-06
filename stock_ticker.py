@@ -139,7 +139,8 @@ def main():
     while True:
         current_time = time.time()
         if current_time - last_update_time >= update_interval:
-            display_surface.blit(background, (0, 0))
+            # display_surface.blit(background, (0, 0))
+            display_surface.fill((0, 0, 0)) 
             last_updated = format_date(datetime.datetime.now())
             for i, ticker in enumerate(tickers):
                 price, change, percent_change = get_stock_data(ticker)
