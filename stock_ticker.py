@@ -112,13 +112,23 @@ def main():
                                    (LARGE_FONT * 1.25) + i * (LARGE_FONT * 2.75))
             render_last_updated(display_surface, small_font, last_updated)
             last_update_time = current_time
-        pygame.display.update()
+
+            # Flip the display surface upside down and blit it onto the screen
+            flipped_surface = pygame.transform.rotate(display_surface, 180)
+            display_surface.blit(flipped_surface, (0, 0))
+
+        # Update the entire display
+        pygame.display.flip()
         clock.tick(10)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
+
+if __name__ == '__main__':
+    main()
+
 
 if __name__ == '__main__':
     main()
