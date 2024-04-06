@@ -5,6 +5,7 @@ import requests
 import time
 from bs4 import BeautifulSoup
 import socket
+import yfinance as yf
 
 X = 480
 Y = 320
@@ -41,7 +42,7 @@ def parse_arguments():
     """Parse command line arguments for stock tickers."""
     parser = argparse.ArgumentParser(description='Stock Ticker Display')
     parser.add_argument('ticker', nargs=2, help='Two stock tickers')
-    parser.add_argument('--refresh', type=check_positive, default=10, help='Refresh rate in seconds (default: 10, min: 1)')
+    parser.add_argument('--refresh', type=check_positive, default=1, help='Refresh rate in seconds (default: 1, min: 1)')
     args = parser.parse_args()
     return args
 
@@ -54,31 +55,15 @@ def format_date(dt):
 
 
 def get_stock_data(ticker):
-    """Fetch stock data from CNBC for the given ticker."""
-    url = f'https://www.cnbc.com/quotes/{ticker}'
-
     try:
-        response = requests.get(url)
-    except requests.exceptions.ConnectionError:
+        data = yf.Ticker(ticker).info
+        price = data.get('currentPrice')
+        previous_close = data['regularMarketPreviousClose']
+        change = price - previous_close
+        percent_change = (change / previous_close) * 100
+        return float(price), float(change), float(percent_change)
+    except Exception:
         return -1.0, -1.0, -1.0
-    
-    if response.status_code != 200:
-        return -1.0, -1.0, -1.0
-    
-    soup = BeautifulSoup(response.text, 'html.parser')
-    element = soup.find('div', {'class': 'QuoteStrip-lastPriceStripContainer'})
-    spans = element.find_all('span')
-
-    last_price = float(spans[0].text.replace(',', ''))
-
-    if spans[2].text == 'UNCH':
-        price_change = 0.0
-        percent_change = 0.0
-    else:
-        price_change = float(spans[1].text.split(' ')[0].strip('+'))
-        percent_change = float(spans[1].text.split(' ')[1].strip('()+%'))
-
-    return last_price, price_change, percent_change
 
 
 def render_last_updated(display_surface, font, last_updated):
