@@ -54,8 +54,12 @@ def format_date(dt):
 
 def get_stock_data(ticker):
     try:
-        data = yf.Ticker(ticker).info
-        price = data.get('currentPrice')
+        ticker_obj = yf.Ticker(ticker)
+        data = ticker_obj.info
+        if 'currentPrice' not in data:
+            price = ticker_obj.history(period="1d")['Close'].iloc[-1]
+        else:
+            price = data.get('currentPrice')
         previous_close = data['regularMarketPreviousClose']
         change = price - previous_close
         percent_change = (change / previous_close) * 100
@@ -130,8 +134,6 @@ def main():
     font = pygame.font.Font('font.ttf', LARGE_FONT)
     small_font = pygame.font.Font('font.ttf', SMALL_FONT)
     tiny_fony = pygame.font.Font('font.ttf', TINY_FONT)
-    last_update_time = time.time() - refresh_rate
-    update_interval = refresh_rate
     clock = pygame.time.Clock()
 
     while True:
@@ -140,23 +142,19 @@ def main():
                 pygame.quit()
                 quit()
 
-        current_time = time.time()
+        display_surface.fill((0, 0, 0)) 
+        current_date = datetime.datetime.now()
+        last_updated = format_date(current_date)
+        for i, ticker in enumerate(tickers):
+            price, change, percent_change = get_stock_data(ticker) 
+            render_stock_info(display_surface, font, ticker, price, change, percent_change,
+                                (LARGE_FONT * 1.5) + i * (LARGE_FONT * 2.75))
+        render_last_updated(display_surface, small_font, last_updated)
+        render_ip_address(display_surface, tiny_fony, ip_address)
+        render_market_status(display_surface, small_font, current_date)
 
-        if current_time - last_update_time >= update_interval:
-            display_surface.fill((0, 0, 0)) 
-            current_date = datetime.datetime.now()
-            last_updated = format_date(current_date)
-            for i, ticker in enumerate(tickers):
-                price, change, percent_change = get_stock_data(ticker) 
-                render_stock_info(display_surface, font, ticker, price, change, percent_change,
-                                   (LARGE_FONT * 1.5) + i * (LARGE_FONT * 2.75))
-            render_last_updated(display_surface, small_font, last_updated)
-            render_ip_address(display_surface, tiny_fony, ip_address)
-            render_market_status(display_surface, small_font, current_date)
-            last_update_time = current_time
-
-            flipped_surface = pygame.transform.rotate(display_surface, 180)
-            display_surface.blit(flipped_surface, (0, 0))
+        flipped_surface = pygame.transform.rotate(display_surface, 180)
+        display_surface.blit(flipped_surface, (0, 0))
 
         pygame.display.flip()
         clock.tick(1.0 / (refresh_rate + 1))
