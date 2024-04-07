@@ -8,7 +8,7 @@ import yfinance as yf
 X = 480
 Y = 320
 LARGE_FONT = 45
-SMALL_FONT = 20
+SMALL_FONT = 15
 TINY_FONT = 12
 RETRIES = 10
 
@@ -67,8 +67,8 @@ def get_stock_data(ticker):
 def render_last_updated(display_surface, font, last_updated):
     """Render the last updated time on the display surface."""
     white = (255, 255, 255)
-    updated_text = font.render(f'Updated: {last_updated}', True, white)
-    updated_rect = updated_text.get_rect(center=(X // 2, Y - SMALL_FONT))
+    updated_text = font.render(f'{last_updated}', True, white)
+    updated_rect = updated_text.get_rect(center=(125, Y - SMALL_FONT))
     display_surface.blit(updated_text, updated_rect)
 
 
@@ -101,6 +101,20 @@ def render_ip_address(display_surface, font, ip_address):
     display_surface.blit(ip_text, (10, 10))
 
 
+def render_market_status(display_surface, font, current_date):
+    """Render the market status on the display surface."""
+    market_status = 'Market Closed'
+    position = (410, Y - SMALL_FONT)
+    white = (255, 255, 255)
+    current_hour_decimal = current_date.hour + current_date.minute / 60.0
+    if current_date.weekday() < 5 and 9.5 <= current_hour_decimal < 16:
+        market_status = 'Market Open'
+        position = (417, Y - SMALL_FONT)
+    market_text = font.render(f'{market_status}', True, white)
+    market_rect = market_text.get_rect(center=position)
+    display_surface.blit(market_text, market_rect)
+
+
 def main():
     """Main function for the stock ticker display."""
     ip_address = get_ip_address()
@@ -130,13 +144,15 @@ def main():
 
         if current_time - last_update_time >= update_interval:
             display_surface.fill((0, 0, 0)) 
-            last_updated = format_date(datetime.datetime.now())
+            current_date = datetime.datetime.now()
+            last_updated = format_date(current_date)
             for i, ticker in enumerate(tickers):
                 price, change, percent_change = get_stock_data(ticker) 
                 render_stock_info(display_surface, font, ticker, price, change, percent_change,
                                    (LARGE_FONT * 1.5) + i * (LARGE_FONT * 2.75))
             render_last_updated(display_surface, small_font, last_updated)
             render_ip_address(display_surface, tiny_fony, ip_address)
+            render_market_status(display_surface, small_font, current_date)
             last_update_time = current_time
 
             flipped_surface = pygame.transform.rotate(display_surface, 180)
