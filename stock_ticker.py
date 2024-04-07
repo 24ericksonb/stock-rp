@@ -12,21 +12,30 @@ SMALL_FONT = 15
 TINY_FONT = 12
 RETRIES = 10
 
-def get_ip_address():
+def get_ip_address_initial():
     """Get the IP address of the device."""
     for _ in range(RETRIES):
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            ip_address = s.getsockname()[0]
-            s.close()
-        except Exception:
+        ip_address = get_ip_address()
+        if ip_address:
+            return ip_address
+        else:
             print("Failed to find IP address. Retrying...")
             time.sleep(4)
-            continue
-        return ip_address
     print("No IP address found. Exiting...")
     exit()
+
+
+def get_ip_address():
+    """Get the IP address of the device."""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(2)
+        s.connect(("8.8.8.8", 80))
+        ip_address = s.getsockname()[0]
+        s.close()
+        return ip_address
+    except Exception:
+        return None
 
 
 def check_positive(value):
@@ -101,7 +110,8 @@ def render_stock_info(display_surface, font, stock_name, price, change, percent_
 def render_ip_address(display_surface, font, ip_address):
     """Render the IP address on the display surface."""
     white = (255, 255, 255)
-    ip_text = font.render(f'IP: {ip_address}', True, white)
+    ip_address_text = ip_address if ip_address else 'N/A'
+    ip_text = font.render(f'IP: {ip_address_text}', True, white)
     display_surface.blit(ip_text, (10, 10))
 
 
@@ -121,7 +131,7 @@ def render_market_status(display_surface, font, current_date):
 
 def main():
     """Main function for the stock ticker display."""
-    ip_address = get_ip_address()
+    ip_address = get_ip_address_initial()
         
     args = parse_arguments()
     tickers = args.ticker
@@ -150,6 +160,7 @@ def main():
             render_stock_info(display_surface, font, ticker, price, change, percent_change,
                                 (LARGE_FONT * 1.75) + i * (LARGE_FONT * 2.75))
         render_last_updated(display_surface, small_font, last_updated)
+        ip_address = get_ip_address()
         render_ip_address(display_surface, tiny_fony, ip_address)
         render_market_status(display_surface, small_font, current_date)
 
