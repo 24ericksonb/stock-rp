@@ -43,7 +43,7 @@ def parse_arguments():
     """Parse command line arguments for stock tickers."""
     parser = argparse.ArgumentParser(description='Stock Ticker Display')
     parser.add_argument('ticker', nargs=2, help='Two stock tickers')
-    parser.add_argument('--refresh', type=int, default=5, help='Refresh rate in seconds (default: 5, min: 1)')
+    parser.add_argument('--refresh', type=int, default=1, help='Refresh rate in seconds (default: 1, min: 1)')
     args = parser.parse_args()
     return args
 ```
