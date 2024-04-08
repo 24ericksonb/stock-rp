@@ -4,6 +4,7 @@ import pygame
 import time
 import socket
 import yfinance as yf
+import subprocess
 
 X = 480
 Y = 320
@@ -12,28 +13,29 @@ SMALL_FONT = 15
 TINY_FONT = 12
 RETRIES = 10
 
-def get_ip_address_initial():
+def get_ip_address():
     """Get the IP address of the device."""
     for _ in range(RETRIES):
-        ip_address = get_ip_address()
-        if ip_address:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.settimeout(2)
+            s.connect(("8.8.8.8", 80))
+            ip_address = s.getsockname()[0]
+            s.close()
             return ip_address
-        else:
+        except Exception:
             print("Failed to find IP address. Retrying...")
             time.sleep(4)
     print("No IP address found. Exiting...")
     exit()
 
 
-def get_ip_address():
-    """Get the IP address of the device."""
+def get_temperature():
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.settimeout(2)
-        s.connect(("8.8.8.8", 80))
-        ip_address = s.getsockname()[0]
-        s.close()
-        return ip_address
+        result = subprocess.run(['vcgencmd', 'measure_temp'], capture_output=True, text=True, check=True)
+        output = result.stdout.strip()
+        temp_str = output.split('=')[1].split("'")[0]
+        return float(temp_str)
     except Exception:
         return None
 
@@ -107,11 +109,12 @@ def render_stock_info(display_surface, font, stock_name, price, change, percent_
     display_surface.blit(change_text, change_rect)
 
 
-def render_ip_address(display_surface, font, ip_address):
+def render_monitoring_data(display_surface, font, ip_address, temperature):
     """Render the IP address on the display surface."""
     white = (255, 255, 255)
-    ip_address_text = ip_address if ip_address else 'N/A'
-    ip_text = font.render(f'IP: {ip_address_text}', True, white)
+    ip_address_text = f'IP: {ip_address}' if ip_address else 'N/A'
+    temperature_text = f'{temperature}° C'
+    ip_text = font.render(ip_address_text + (temperature_text if temperature else ''), True, white)
     display_surface.blit(ip_text, (10, 10))
 
 
@@ -131,7 +134,7 @@ def render_market_status(display_surface, font, current_date):
 
 def main():
     """Main function for the stock ticker display."""
-    ip_address = get_ip_address_initial()
+    ip_address = get_ip_address()
         
     args = parse_arguments()
     tickers = args.ticker
@@ -155,13 +158,13 @@ def main():
         display_surface.fill((0, 0, 0)) 
         current_date = datetime.datetime.now()
         last_updated = format_date(current_date)
+        temperature = get_temperature()
         for i, ticker in enumerate(tickers):
             price, change, percent_change = get_stock_data(ticker) 
             render_stock_info(display_surface, font, ticker, price, change, percent_change,
                                 (LARGE_FONT * 1.75) + i * (LARGE_FONT * 2.75))
         render_last_updated(display_surface, small_font, last_updated)
-        ip_address = get_ip_address()
-        render_ip_address(display_surface, tiny_fony, ip_address)
+        render_monitoring_data(display_surface, tiny_fony, ip_address, temperature)
         render_market_status(display_surface, small_font, current_date)
 
         flipped_surface = pygame.transform.rotate(display_surface, 180)
