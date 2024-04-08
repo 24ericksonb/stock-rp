@@ -91,12 +91,12 @@ def render_stock_info(display_surface, font, stock_name, price, change, percent_
     green = (0, 255, 0)
     red = (255, 0, 0)
     color = green if change > 0 else red if change < 0 else white
-    plus_sign = '+' if change > 0 else ''
+    sign = '+' if change > 0 else '-' if change < 0 else ''
 
     errored = price == -1
     price_text = 'ERROR' if errored else f'${price:,.2f}'
-    change_text = 'ERROR' if errored else f'{plus_sign}${change:,.2f}'
-    percent_change_text = 'ERROR' if errored else f'{plus_sign}{percent_change:,.2f}%'
+    change_text = 'ERROR' if errored else f'{sign}${abs(change):,.2f}'
+    percent_change_text = 'ERROR' if errored else f'{sign}{abs(percent_change):,.2f}%'
 
     stock_text = font.render(f'{stock_name}    {price_text}', True, color)
     change_text = font.render(f'{change_text}   {percent_change_text}', True, color)
