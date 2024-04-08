@@ -113,11 +113,12 @@ def render_monitoring_data(display_surface, font, ip_address, temperature):
     """Render the IP address on the display surface."""
     white = (255, 255, 255)
     ip_address_text = f'IP: {ip_address}' if ip_address else 'N/A'
-    temperature_text = f'46.5° C'
+    temperature_text = f'{temperature}° C'
     ip_text = font.render(ip_address_text, True, white)
     temp_text = font.render(temperature_text, True, white)
     display_surface.blit(ip_text, (10, 10))
-    display_surface.blit(temp_text, (10, 10 + SMALL_FONT))
+    if temperature:
+        display_surface.blit(temp_text, (10, 10 + SMALL_FONT))
 
 
 def render_market_status(display_surface, font, current_date):
