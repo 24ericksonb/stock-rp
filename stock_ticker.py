@@ -51,7 +51,7 @@ def parse_arguments():
     """Parse command line arguments for stock tickers."""
     parser = argparse.ArgumentParser(description='Stock Ticker Display')
     parser.add_argument('ticker', nargs=2, help='Two stock tickers')
-    parser.add_argument('--refresh', type=check_positive, default=1, help='Refresh rate in seconds (default: 1, min: 1)')
+    parser.add_argument('--refresh', type=check_positive, default=2, help='Refresh rate in seconds (default: 2, min: 1)')
     args = parser.parse_args()
     return args
 
@@ -113,9 +113,11 @@ def render_monitoring_data(display_surface, font, ip_address, temperature):
     """Render the IP address on the display surface."""
     white = (255, 255, 255)
     ip_address_text = f'IP: {ip_address}' if ip_address else 'N/A'
-    temperature_text = f', {temperature}° C'
-    ip_text = font.render(ip_address_text + (temperature_text if temperature else ''), True, white)
+    temperature_text = f'46.5° C'
+    ip_text = font.render(ip_address_text, True, white)
+    temp_text = font.render(temperature_text, True, white)
     display_surface.blit(ip_text, (10, 10))
+    display_surface.blit(temp_text, (10, 10 + SMALL_FONT))
 
 
 def render_market_status(display_surface, font, current_date):
@@ -130,7 +132,6 @@ def render_market_status(display_surface, font, current_date):
     market_text = font.render(f'{market_status}', True, white)
     market_rect = market_text.get_rect(center=position)
     display_surface.blit(market_text, market_rect)
-
 
 def main():
     """Main function for the stock ticker display."""
