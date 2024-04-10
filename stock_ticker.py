@@ -3,8 +3,8 @@ import datetime
 import pygame
 import time
 import socket
-import yfinance as yf
 import subprocess
+from yahooquery import Ticker
 
 X = 480
 Y = 320
@@ -51,7 +51,7 @@ def parse_arguments():
     """Parse command line arguments for stock tickers."""
     parser = argparse.ArgumentParser(description='Stock Ticker Display')
     parser.add_argument('ticker', nargs=2, help='Two stock tickers')
-    parser.add_argument('--refresh', type=check_positive, default=2, help='Refresh rate in seconds (default: 2, min: 1)')
+    parser.add_argument('--refresh', type=check_positive, default=1, help='Refresh rate in seconds (default: 1, min: 1)')
     args = parser.parse_args()
     return args
 
@@ -63,20 +63,27 @@ def format_date(dt):
     return formatted_date
 
 
-def get_stock_data(ticker):
+def get_stock_data(tickers):
     try:
-        ticker_obj = yf.Ticker(ticker)
-        data = ticker_obj.info
-        if 'currentPrice' not in data:
-            price = ticker_obj.history(period="1d")['Close'].iloc[-1]
-        else:
-            price = data.get('currentPrice')
-        previous_close = data['regularMarketPreviousClose']
-        change = price - previous_close
-        percent_change = (change / previous_close) * 100
-        return float(price), float(change), float(percent_change)
+        ticker_obj = Ticker(tickers)
+        return ticker_obj.price
     except Exception:
-        return -1.0, -1.0, -1.0
+        return []
+
+
+def parse_stock_data(data, tickers):
+    price_data = {}
+
+    for ticker in tickers:
+        try:
+            ticker_data = data[ticker]
+            price = ticker_data.get('regularMarketPrice')
+            change = round(ticker_data.get('regularMarketChange'), 2)
+            percent_change = round(ticker_data.get('regularMarketChangePercent') * 100, 2)
+            price_data[ticker] = (float(price), float(change), float(percent_change))
+        except Exception:
+            price_data[ticker] = (-1.0, -1.0, -1.0)
+    return price_data
 
 
 def render_last_updated(display_surface, font, last_updated):
@@ -161,8 +168,10 @@ def main():
         current_date = datetime.datetime.now()
         last_updated = format_date(current_date)
         temperature = get_temperature()
+        stock_data = get_stock_data(tickers)
+        stock_info = parse_stock_data(stock_data, tickers)
         for i, ticker in enumerate(tickers):
-            price, change, percent_change = get_stock_data(ticker) 
+            price, change, percent_change = stock_info[ticker]
             render_stock_info(display_surface, font, ticker, price, change, percent_change,
                                 (LARGE_FONT * 1.75) + i * (LARGE_FONT * 2.75))
         render_last_updated(display_surface, small_font, last_updated)
