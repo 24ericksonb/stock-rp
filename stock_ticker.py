@@ -12,6 +12,7 @@ LARGE_FONT = 42
 SMALL_FONT = 15
 TINY_FONT = 12
 RETRIES = 10
+AMOUNT_STOCK = 2627
 
 def get_ip_address():
     """Get the IP address of the device."""
@@ -50,7 +51,7 @@ def check_positive(value):
 def parse_arguments():
     """Parse command line arguments for stock tickers."""
     parser = argparse.ArgumentParser(description='Stock Ticker Display')
-    parser.add_argument('ticker', nargs=2, help='Two stock tickers')
+    parser.add_argument('ticker', help='Stock ticker')
     parser.add_argument('--refresh', type=check_positive, default=1, help='Refresh rate in seconds (default: 1, min: 1)')
     args = parser.parse_args()
     return args
@@ -59,30 +60,36 @@ def parse_arguments():
 def format_date(dt):
     """Format the given datetime object to a human-readable string."""
     day_suffix = ['th', 'st', 'nd', 'rd'] + ['th'] * 16 + ['st', 'nd', 'rd'] + ['th'] * 7 + ['st']
-    formatted_date = dt.strftime(f'%A, %B %-d{day_suffix[dt.day - 1]} %-I:%M %p')
+    day = dt.day
+    if 4 <= day <= 20 or 24 <= day <= 30:
+        suffix = "th"
+    else:
+        suffix = ["st", "nd", "rd"][day % 10 - 1]
+
+    formatted_date = dt.strftime(f'%A, %B {day}{suffix} %I:%M %p')
     return formatted_date
 
 
-def get_stock_data(tickers):
+
+def get_stock_data(ticker):
     try:
-        ticker_obj = Ticker(tickers)
+        ticker_obj = Ticker([ticker])
         return ticker_obj.price
     except Exception:
         return []
 
 
-def parse_stock_data(data, tickers):
+def parse_stock_data(data, ticker):
     price_data = {}
 
-    for ticker in tickers:
-        try:
-            ticker_data = data[ticker]
-            price = ticker_data.get('regularMarketPrice')
-            change = round(ticker_data.get('regularMarketChange'), 2)
-            percent_change = round(ticker_data.get('regularMarketChangePercent') * 100, 2)
-            price_data[ticker] = (float(price), float(change), float(percent_change))
-        except Exception:
-            price_data[ticker] = (-1.0, -1.0, -1.0)
+    try:
+        ticker_data = data[ticker]
+        price = ticker_data.get('regularMarketPrice')
+        change = round(ticker_data.get('regularMarketChange'), 2)
+        percent_change = round(ticker_data.get('regularMarketChangePercent') * 100, 2)
+        price_data[ticker] = (float(price), float(change), float(percent_change))
+    except Exception:
+        price_data[ticker] = (-1.0, -1.0, -1.0)
     return price_data
 
 
@@ -92,6 +99,16 @@ def render_last_updated(display_surface, font, last_updated):
     updated_text = font.render(f'{last_updated}', True, white)
     updated_rect = updated_text.get_rect(center=(125, Y - SMALL_FONT))
     display_surface.blit(updated_text, updated_rect)
+
+
+def render_text(display_surface, font, text, position):
+    """Render any text on the display surface."""
+    white = (255, 255, 255)
+
+    main_text = font.render(text, True, white)
+    main_text_rect = main_text.get_rect(center=(X // 2, position + LARGE_FONT // 2))
+
+    display_surface.blit(main_text, main_text_rect)
 
 
 def render_stock_info(display_surface, font, stock_name, price, change, percent_change, position):
@@ -146,7 +163,7 @@ def main():
     ip_address = get_ip_address()
         
     args = parse_arguments()
-    tickers = args.ticker
+    ticker = args.ticker
     refresh_rate = args.refresh - 1
 
     pygame.init()
@@ -168,12 +185,13 @@ def main():
         current_date = datetime.datetime.now()
         last_updated = format_date(current_date)
         temperature = get_temperature()
-        stock_data = get_stock_data(tickers)
-        stock_info = parse_stock_data(stock_data, tickers)
-        for i, ticker in enumerate(tickers):
-            price, change, percent_change = stock_info[ticker]
-            render_stock_info(display_surface, font, ticker, price, change, percent_change,
-                                (LARGE_FONT * 1.75) + i * (LARGE_FONT * 2.75))
+        stock_data = get_stock_data(ticker)
+        stock_info = parse_stock_data(stock_data, ticker)
+        price, change, percent_change = stock_info[ticker]
+        render_stock_info(display_surface, font, ticker, price, change, percent_change,
+                            (LARGE_FONT * 2.25) + 0 * (LARGE_FONT * 3.25))
+        total_stock = f"${price * AMOUNT_STOCK:,.2f}"
+        render_text(display_surface, font, total_stock, (LARGE_FONT * 1.75) + 1 * (LARGE_FONT * 2.75))
         render_last_updated(display_surface, small_font, last_updated)
         render_monitoring_data(display_surface, tiny_fony, ip_address, temperature)
         render_market_status(display_surface, small_font, current_date)
