@@ -36,39 +36,19 @@ This project creates a stock ticker display for your desk using a Raspberry Pi a
    python3 stock_ticker.py AAPL MSFT
    ```
 
-To add a minimum value constraint for the `refresh` argument in the `parse_arguments` function, you can use the `choices` parameter of `add_argument` to specify a range of acceptable values. Here's how you can modify the function:
-
-```python
-def parse_arguments():
-    """Parse command line arguments for stock tickers."""
-    parser = argparse.ArgumentParser(description='Stock Ticker Display')
-    parser.add_argument('ticker', nargs=2, help='Two stock tickers')
-    parser.add_argument('--refresh', type=int, default=1, help='Refresh rate in seconds (default: 1, min: 1)')
-    args = parser.parse_args()
-    return args
-```
-
 ## Usage
 - Run the script with the following command:
   ```
-  python3 stock_ticker.py <ticker-1> <ticker-2>
+  python3 stock_ticker.py <ticker>
   ```
 - You can also specify the refresh rate in seconds using the `--refresh` option (minimum 1 second, default 10 seconds):
   ```
-  python3 stock_ticker.py <ticker-1> <ticker-2> --refresh <speed-in-seconds>
+  python3 stock_ticker.py <ticker> --refresh <speed-in-seconds>
   ```
 - Example command:
   ```
-  python3 stock_ticker.py RBLX SPX --refresh 10
+  python3 stock_ticker.py RBLX --refresh 10
   ```
 - The stock ticker display will show the current prices and changes for the specified stocks, updating at the specified refresh rate (WARNING: becareful of rate limit if set to a low speed).
 - To exit the program, press `CTRL+C` in the terminal or close the terminal window.
-
-## Customization
-- You can modify the stock tickers by changing the arguments when running the script.
-- The update interval and display settings can be adjusted in the `stock_ticker.py` file.
-
-## License
-This project is open-source and available under the MIT License.
-
 ---
