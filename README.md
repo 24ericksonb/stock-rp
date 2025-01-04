@@ -31,9 +31,9 @@ This project creates a stock ticker display for your desk using a Raspberry Pi a
    ```
    pip3 install -r requirements.txt
    ```
-4. Run the script with two stock tickers as arguments:
+4. Run the script with the stock ticker as arguments:
    ```
-   python3 stock_ticker.py AAPL MSFT
+   python3 stock_ticker.py AAPL
    ```
 
 ## Usage
@@ -49,6 +49,6 @@ This project creates a stock ticker display for your desk using a Raspberry Pi a
   ```
   python3 stock_ticker.py RBLX --refresh 10
   ```
-- The stock ticker display will show the current prices and changes for the specified stocks, updating at the specified refresh rate (WARNING: becareful of rate limit if set to a low speed).
+- The stock ticker display will show the current price for the specified stock, updating at the specified refresh rate (WARNING: becareful of rate limit if set to a fast refresh rate).
 - To exit the program, press `CTRL+C` in the terminal or close the terminal window.
 ---
